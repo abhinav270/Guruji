@@ -201,8 +201,8 @@ const App: React.FC = () => {
   // --- Render ---
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'} md:w-64`}>
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300 overflow-hidden">
+      <div className={`fixed z-20 inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
         <Sidebar
           isOpen={isSidebarOpen}
           chatSessions={filteredChatSessions}
@@ -219,9 +219,10 @@ const App: React.FC = () => {
         onUsePrompt={handleUsePrompt}
         />
       </div>
-      <ChatView
-        messages={activeChat?.messages ?? []}
-        isTyping={isTyping}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+        <ChatView
+          messages={activeChat?.messages ?? []}
+          isTyping={isTyping}
         input={input}
         setInput={setInput}
         handleSendMessage={handleSendMessage}
@@ -235,7 +236,9 @@ const App: React.FC = () => {
         openSettingsModal={() => setIsSettingsModalOpen(true)}
         chatbotTitle={chatbotTitle}
         logo={logo}
+        isSidebarOpen={isSidebarOpen}
       />
+      </div>
       <PromptModal
         isOpen={isPromptModalOpen}
         onClose={() => setIsPromptModalOpen(false)}
