@@ -1,5 +1,6 @@
 import React, { FormEvent, KeyboardEvent } from 'react';
-import { Send, Bot, User, Sun, Moon, Trash2, Menu } from 'lucide-react';
+import { Send, Bot, User, Sun, Moon, Trash2, Settings } from 'lucide-react';
+import { HamburgerButton } from './HamburgerButton';
 
 // --- Type Definitions ---
 export type Message = {
@@ -23,6 +24,7 @@ interface ChatViewProps {
   handleClearChat: () => void;
   handleKeyPress: (e: KeyboardEvent<HTMLInputElement>) => void;
   toggleSidebar: () => void;
+  openSettingsModal: () => void;
 }
 
 // =================================================================================
@@ -41,6 +43,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   handleClearChat,
   handleKeyPress,
   toggleSidebar,
+  openSettingsModal,
 }) => {
   return (
     <div className="flex flex-col h-screen flex-1">
@@ -49,6 +52,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
         darkMode={darkMode}
         handleClearChat={handleClearChat}
         toggleSidebar={toggleSidebar}
+        openSettingsModal={openSettingsModal}
       />
       <ChatArea
         messages={messages}
@@ -74,9 +78,10 @@ type HeaderProps = {
   darkMode: boolean;
   handleClearChat: () => void;
   toggleSidebar: () => void;
+  openSettingsModal: () => void;
 };
 
-const Header: React.FC<HeaderProps> = ({ toggleDarkMode, darkMode, handleClearChat, toggleSidebar }) => (
+const Header: React.FC<HeaderProps> = ({ toggleDarkMode, darkMode, handleClearChat, toggleSidebar, openSettingsModal }) => (
   <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md">
     <div className="flex items-center gap-4">
       <button onClick={toggleSidebar} className="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
@@ -90,6 +95,9 @@ const Header: React.FC<HeaderProps> = ({ toggleDarkMode, darkMode, handleClearCh
       </button>
       <button onClick={toggleDarkMode} aria-label="Toggle dark mode" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
         {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
+      <button onClick={openSettingsModal} aria-label="Settings" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
+        <Settings size={20} />
       </button>
     </div>
   </header>
@@ -126,7 +134,7 @@ const MessageBubble: React.FC<Message> = ({ text, sender, timestamp }) => {
         <div className="flex items-center gap-2">
            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{isUser ? 'You' : 'Assistant'}</span>
         </div>
-        <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-2xl ${isUser ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 dark:text-gray-200 rounded-bl-none'}`}>
+        <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-2xl ${isUser ? 'bg-primary text-white rounded-br-none' : 'bg-white dark:bg-gray-700 dark:text-gray-200 rounded-bl-none'}`}>
           <p>{text}</p>
         </div>
         <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">{timestamp}</span>
@@ -193,7 +201,7 @@ const InputBar: React.FC<InputBarProps> = ({ input, setInput, handleSendMessage,
       <button
         type="submit"
         aria-label="Send message"
-        className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
+        className="p-2 bg-primary text-white rounded-lg hover:bg-primary/80 disabled:bg-primary/50"
         disabled={!input.trim()}
       >
         <Send size={20} />
