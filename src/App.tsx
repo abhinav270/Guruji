@@ -217,7 +217,7 @@ const App: React.FC = () => {
       onDeletePrompt={handleDeletePrompt}
       onUsePrompt={handleUsePrompt}
       />
-      <div className="flex-1 flex flex-col">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : ''}`}>
         <ChatView
           messages={activeChat?.messages ?? []}
           isTyping={isTyping}

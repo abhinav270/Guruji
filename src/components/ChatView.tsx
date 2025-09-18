@@ -95,7 +95,7 @@ type HeaderProps = {
 };
 
 const Header: React.FC<HeaderProps> = ({ toggleDarkMode, darkMode, handleClearChat, toggleSidebar, chatbotTitle, logo, openSettingsModal, isSidebarOpen }) => (
-  <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md">
+  <header className="relative z-30 flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md">
     <div className="flex items-center gap-4">
       <HamburgerButton isOpen={isSidebarOpen} onClick={toggleSidebar} className="text-gray-500 dark:text-gray-400" />
       {logo && <img src={logo} alt="logo" className="h-8 w-auto rounded-md" />}
