@@ -201,25 +201,23 @@ const App: React.FC = () => {
   // --- Render ---
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300 overflow-hidden">
-      <div className={`fixed z-20 inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
-        <Sidebar
-          isOpen={isSidebarOpen}
-          chatSessions={filteredChatSessions}
-          activeChatId={activeChatId}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onNewChat={handleNewChat}
-        onSelectChat={handleSelectChat}
-        onDeleteChat={handleDeleteChat}
-        promptTemplates={promptTemplates}
-        onNewPrompt={openNewPromptModal}
-        onEditPrompt={openEditPromptModal}
-        onDeletePrompt={handleDeletePrompt}
-        onUsePrompt={handleUsePrompt}
-        />
-      </div>
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        chatSessions={filteredChatSessions}
+        activeChatId={activeChatId}
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      onNewChat={handleNewChat}
+      onSelectChat={handleSelectChat}
+      onDeleteChat={handleDeleteChat}
+      promptTemplates={promptTemplates}
+      onNewPrompt={openNewPromptModal}
+      onEditPrompt={openEditPromptModal}
+      onDeletePrompt={handleDeletePrompt}
+      onUsePrompt={handleUsePrompt}
+      />
+      <div className="flex-1 flex flex-col">
         <ChatView
           messages={activeChat?.messages ?? []}
           isTyping={isTyping}
