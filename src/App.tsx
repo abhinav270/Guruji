@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent } from 're
 import { Sidebar } from './components/Sidebar';
 import { ChatView, Message } from './components/ChatView';
 import { PromptModal, PromptTemplate } from './components/PromptModal';
+import { SettingsModal } from './components/SettingsModal';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Type Definitions ---
@@ -16,6 +17,9 @@ export interface ChatSession {
 // =================================================================================
 const App: React.FC = () => {
   // --- State Management ---
+  const [logo, setLogo] = useState<string | null>(null);
+  const [chatbotTitle, setChatbotTitle] = useState('Chatbot');
+  const [themeColor, setThemeColor] = useState('#007bff');
   const [darkMode, setDarkMode] = useState(false);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -24,6 +28,7 @@ const App: React.FC = () => {
   ]);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [promptToEdit, setPromptToEdit] = useState<PromptTemplate | null>(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [input, setInput] = useState('');
@@ -53,6 +58,11 @@ const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
+
+  // Apply theme color
+  useEffect(() => {
+    document.documentElement.style.setProperty('--theme-color', themeColor);
+  }, [themeColor]);
 
   // Auto-focus input on load
   useEffect(() => {
@@ -191,8 +201,8 @@ const App: React.FC = () => {
   // --- Render ---
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'} md:w-64`}>
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300 overflow-hidden">
+      <div className={`fixed z-20 inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
         <Sidebar
           isOpen={isSidebarOpen}
           chatSessions={filteredChatSessions}
@@ -209,9 +219,10 @@ const App: React.FC = () => {
         onUsePrompt={handleUsePrompt}
         />
       </div>
-      <ChatView
-        messages={activeChat?.messages ?? []}
-        isTyping={isTyping}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+        <ChatView
+          messages={activeChat?.messages ?? []}
+          isTyping={isTyping}
         input={input}
         setInput={setInput}
         handleSendMessage={handleSendMessage}
@@ -222,12 +233,27 @@ const App: React.FC = () => {
         handleClearChat={handleClearChat}
         handleKeyPress={handleKeyPress}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        openSettingsModal={() => setIsSettingsModalOpen(true)}
+        chatbotTitle={chatbotTitle}
+        logo={logo}
+        isSidebarOpen={isSidebarOpen}
       />
+      </div>
       <PromptModal
         isOpen={isPromptModalOpen}
         onClose={() => setIsPromptModalOpen(false)}
         onSave={handleSavePrompt}
         promptToEdit={promptToEdit}
+      />
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        themeColor={themeColor}
+        setThemeColor={setThemeColor}
+        chatbotTitle={chatbotTitle}
+        setChatbotTitle={setChatbotTitle}
+        logo={logo}
+        setLogo={setLogo}
       />
     </div>
   );
