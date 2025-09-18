@@ -1,5 +1,6 @@
 import React, { FormEvent, KeyboardEvent } from 'react';
-import { Send, Bot, User, Sun, Moon, Trash2, Menu, Settings } from 'lucide-react';
+import { Send, Bot, User, Sun, Moon, Trash2, Settings } from 'lucide-react';
+import { HamburgerButton } from './HamburgerButton';
 
 // --- Type Definitions ---
 export type Message = {
