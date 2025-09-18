@@ -1,0 +1,236 @@
+import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent } from 'react';
+import { Sidebar } from './components/Sidebar';
+import { ChatView, Message } from './components/ChatView';
+import { PromptModal, PromptTemplate } from './components/PromptModal';
+import { v4 as uuidv4 } from 'uuid';
+
+// --- Type Definitions ---
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+}
+
+// =================================================================================
+// --- Main App Component ---
+// =================================================================================
+const App: React.FC = () => {
+  // --- State Management ---
+  const [darkMode, setDarkMode] = useState(false);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([
+    { id: '1', title: 'Summarize Text', text: 'Please summarize the following text:\n\n' }
+  ]);
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [promptToEdit, setPromptToEdit] = useState<PromptTemplate | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // --- Derived State ---
+  const activeChat = chatSessions.find(session => session.id === activeChatId);
+  const filteredChatSessions = chatSessions.filter(session =>
+    session.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // --- Effects ---
+
+  // Initialize with a default chat session
+  useEffect(() => {
+    if (chatSessions.length === 0) {
+      const newId = uuidv4();
+      setChatSessions([{ id: newId, title: 'New Chat', messages: [] }]);
+      setActiveChatId(newId);
+    }
+  }, [chatSessions.length]);
+
+  // Apply dark mode
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
+
+  // Auto-focus input on load
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [activeChatId]); // Refocus when chat changes
+
+  // Scroll to bottom on new message
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [activeChat?.messages, isTyping]);
+
+  // Bot reply simulation
+  useEffect(() => {
+    const messages = activeChat?.messages ?? [];
+    if (messages.length > 0 && messages[messages.length - 1].sender === 'user') {
+      setIsTyping(true);
+      const timer = setTimeout(() => {
+        const lastUserMessage = messages[messages.length - 1].text;
+        const botMessage: Message = {
+          id: Date.now(),
+          text: `Echo: ${lastUserMessage}`,
+          sender: 'bot',
+          timestamp: new Date().toLocaleTimeString(),
+        };
+
+        setChatSessions(prevSessions =>
+          prevSessions.map(session =>
+            session.id === activeChatId
+              ? { ...session, messages: [...session.messages, botMessage] }
+              : session
+          )
+        );
+        setIsTyping(false);
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [activeChat?.messages, activeChatId]);
+
+  // --- Event Handlers ---
+
+  const handleSendMessage = (e: FormEvent) => {
+    e.preventDefault();
+    if (input.trim() === '' || !activeChatId) return;
+
+    const userMessage: Message = {
+      id: Date.now(),
+      text: input,
+      sender: 'user',
+      timestamp: new Date().toLocaleTimeString(),
+    };
+
+    setChatSessions(prevSessions =>
+      prevSessions.map(session =>
+        session.id === activeChatId
+          ? { ...session, messages: [...session.messages, userMessage] }
+          : session
+      )
+    );
+    setInput('');
+  };
+
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSendMessage(e as unknown as FormEvent);
+    }
+  };
+
+  const handleNewChat = () => {
+    const newId = uuidv4();
+    const newChat: ChatSession = {
+      id: newId,
+      title: 'New Chat',
+      messages: [],
+    };
+    setChatSessions(prev => [newChat, ...prev]);
+    setActiveChatId(newId);
+  };
+
+  const handleSelectChat = (id: string) => {
+    setActiveChatId(id);
+  };
+
+  const handleDeleteChat = (id: string) => {
+    setChatSessions(prev => prev.filter(session => session.id !== id));
+    // If the active chat is deleted, switch to another one or set to null
+    if (activeChatId === id) {
+      setActiveChatId(chatSessions[0]?.id || null);
+    }
+  };
+
+  const handleClearChat = () => {
+    if (!activeChatId) return;
+    setChatSessions(prevSessions =>
+        prevSessions.map(session =>
+          session.id === activeChatId
+            ? { ...session, messages: [] }
+            : session
+        )
+      );
+  };
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
+  // --- Prompt/Tool Handlers ---
+  const handleSavePrompt = (promptData: Omit<PromptTemplate, 'id'> & { id?: string }) => {
+    if (promptData.id) { // Editing existing prompt
+      setPromptTemplates(prev => prev.map(p => p.id === promptData.id ? { ...p, title: promptData.title, text: promptData.text } : p));
+    } else { // Creating new prompt
+      setPromptTemplates(prev => [...prev, { ...promptData, id: uuidv4() }]);
+    }
+  };
+
+  const handleDeletePrompt = (id: string) => {
+    setPromptTemplates(prev => prev.filter(p => p.id !== id));
+  };
+
+  const handleUsePrompt = (text: string) => {
+    setInput(text);
+    inputRef.current?.focus();
+  };
+
+  const openNewPromptModal = () => {
+    setPromptToEdit(null);
+    setIsPromptModalOpen(true);
+  };
+
+  const openEditPromptModal = (prompt: PromptTemplate) => {
+    setPromptToEdit(prompt);
+    setIsPromptModalOpen(true);
+  };
+
+
+  // --- Render ---
+
+  return (
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'} md:w-64`}>
+        <Sidebar
+          isOpen={isSidebarOpen}
+          chatSessions={filteredChatSessions}
+          activeChatId={activeChatId}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        onDeleteChat={handleDeleteChat}
+        promptTemplates={promptTemplates}
+        onNewPrompt={openNewPromptModal}
+        onEditPrompt={openEditPromptModal}
+        onDeletePrompt={handleDeletePrompt}
+        onUsePrompt={handleUsePrompt}
+        />
+      </div>
+      <ChatView
+        messages={activeChat?.messages ?? []}
+        isTyping={isTyping}
+        input={input}
+        setInput={setInput}
+        handleSendMessage={handleSendMessage}
+        inputRef={inputRef}
+        chatEndRef={chatEndRef}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        handleClearChat={handleClearChat}
+        handleKeyPress={handleKeyPress}
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+      <PromptModal
+        isOpen={isPromptModalOpen}
+        onClose={() => setIsPromptModalOpen(false)}
+        onSave={handleSavePrompt}
+        promptToEdit={promptToEdit}
+      />
+    </div>
+  );
+};
+
+export default App;
