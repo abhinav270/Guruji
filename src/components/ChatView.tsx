@@ -27,8 +27,6 @@ interface ChatViewProps {
   chatbotTitle: string;
   logo: string | null;
   openSettingsModal: () => void;
-
-  isSidebarOpen: boolean;
 }
 
 // =================================================================================
@@ -50,7 +48,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
   chatbotTitle,
   logo,
   openSettingsModal,
-  isSidebarOpen,
 }) => {
   return (
     <div className="flex flex-col h-screen flex-1">
@@ -62,7 +59,6 @@ export const ChatView: React.FC<ChatViewProps> = ({
         handleClearChat={handleClearChat}
         toggleSidebar={toggleSidebar}
         openSettingsModal={openSettingsModal}
-        isSidebarOpen={isSidebarOpen}
       />
       <ChatArea
         messages={messages}
@@ -91,13 +87,14 @@ type HeaderProps = {
   chatbotTitle: string;
   logo: string | null;
   openSettingsModal: () => void;
-  isSidebarOpen: boolean;
 };
 
-const Header: React.FC<HeaderProps> = ({ toggleDarkMode, darkMode, handleClearChat, toggleSidebar, chatbotTitle, logo, openSettingsModal, isSidebarOpen }) => (
+const Header: React.FC<HeaderProps> = ({ toggleDarkMode, darkMode, handleClearChat, toggleSidebar, chatbotTitle, logo, openSettingsModal }) => (
   <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 shadow-md">
     <div className="flex items-center gap-4">
-      <HamburgerButton isOpen={isSidebarOpen} onClick={toggleSidebar} className="text-gray-500 dark:text-gray-400" />
+      <button onClick={toggleSidebar} className="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
+          <Menu size={24} />
+      </button>
       {logo && <img src={logo} alt="logo" className="h-8 w-auto rounded-md" />}
       <h1 className="text-xl font-bold text-gray-800 dark:text-white">{chatbotTitle}</h1>
     </div>
