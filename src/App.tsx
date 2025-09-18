@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent } from 're
 import { Sidebar } from './components/Sidebar';
 import { ChatView, Message } from './components/ChatView';
 import { PromptModal, PromptTemplate } from './components/PromptModal';
+import { SettingsModal } from './components/SettingsModal';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Type Definitions ---
@@ -16,6 +17,9 @@ export interface ChatSession {
 // =================================================================================
 const App: React.FC = () => {
   // --- State Management ---
+  const [logo, setLogo] = useState<string | null>(null);
+  const [chatbotTitle, setChatbotTitle] = useState('Chatbot');
+  const [themeColor, setThemeColor] = useState('#007bff');
   const [darkMode, setDarkMode] = useState(false);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -24,6 +28,7 @@ const App: React.FC = () => {
   ]);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [promptToEdit, setPromptToEdit] = useState<PromptTemplate | null>(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [input, setInput] = useState('');
@@ -53,6 +58,11 @@ const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
+
+  // Apply theme color
+  useEffect(() => {
+    document.documentElement.style.setProperty('--theme-color', themeColor);
+  }, [themeColor]);
 
   // Auto-focus input on load
   useEffect(() => {
@@ -222,12 +232,25 @@ const App: React.FC = () => {
         handleClearChat={handleClearChat}
         handleKeyPress={handleKeyPress}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        openSettingsModal={() => setIsSettingsModalOpen(true)}
+        chatbotTitle={chatbotTitle}
+        logo={logo}
       />
       <PromptModal
         isOpen={isPromptModalOpen}
         onClose={() => setIsPromptModalOpen(false)}
         onSave={handleSavePrompt}
         promptToEdit={promptToEdit}
+      />
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        themeColor={themeColor}
+        setThemeColor={setThemeColor}
+        chatbotTitle={chatbotTitle}
+        setChatbotTitle={setChatbotTitle}
+        logo={logo}
+        setLogo={setLogo}
       />
     </div>
   );
