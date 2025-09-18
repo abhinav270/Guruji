@@ -142,7 +142,7 @@ const MessageBubble: React.FC<Message> = ({ text, sender, timestamp }) => {
         <div className="flex items-center gap-2">
            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{isUser ? 'You' : 'Assistant'}</span>
         </div>
-        <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-2xl ${isUser ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 dark:text-gray-200 rounded-bl-none'}`}>
+        <div className={`max-w-xs md:max-w-md lg:max-w-lg p-3 rounded-2xl ${isUser ? 'bg-[--theme-color] text-white rounded-br-none' : 'bg-white dark:bg-gray-700 dark:text-gray-200 rounded-bl-none'}`}>
           <p>{text}</p>
         </div>
         <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">{timestamp}</span>
@@ -209,7 +209,7 @@ const InputBar: React.FC<InputBarProps> = ({ input, setInput, handleSendMessage,
       <button
         type="submit"
         aria-label="Send message"
-        className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
+        className="p-2 bg-[--theme-color] text-white rounded-lg hover:opacity-90 disabled:opacity-50"
         disabled={!input.trim()}
       >
         <Send size={20} />

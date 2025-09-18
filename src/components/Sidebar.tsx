@@ -39,10 +39,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className={`p-2 ${!isOpen && 'hidden'}`}>
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center gap-2 p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+          className="w-full flex items-center justify-center gap-2 p-2 rounded-lg bg-[--theme-color] text-white hover:opacity-90 transition-colors"
         >
           <Plus size={20} />
-          New Chat
+          <span>New Chat</span>
         </button>
       </div>
 
