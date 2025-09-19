@@ -70,3 +70,12 @@ class ToolDetail(BaseModel):
 class ToolsListResponse(BaseModel):
     """Response model for listing available tools."""
     tools: List[ToolDetail]
+
+# --- Knowledge Base Models ---
+
+class KnowledgeBaseRequest(BaseModel):
+    """Request model for creating a new Knowledge Base."""
+    kb_name: str
+    vector_store: str
+    allowed_file_types: List[str]
+    parsing_library: str

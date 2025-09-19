@@ -17,6 +17,7 @@ interface SidebarProps {
   onEditPrompt: (prompt: PromptTemplate) => void;
   onDeletePrompt: (id: string) => void;
   onUsePrompt: (text: string) => void;
+  onNewKnowledgeBase: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -33,6 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onEditPrompt,
   onDeletePrompt,
   onUsePrompt,
+  onNewKnowledgeBase,
 }) => {
   return (
     <aside className={`absolute z-20 h-full flex flex-col bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} w-64`}>
@@ -95,7 +97,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               placeholder="Vector store name..."
               className="w-full p-2 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />
-            <button className="w-full flex items-center justify-center gap-2 p-2 rounded-lg text-sm bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">
+            <button
+              onClick={onNewKnowledgeBase}
+              className="w-full flex items-center justify-center gap-2 p-2 rounded-lg bg-[--theme-color] text-white hover:opacity-90 transition-colors">
                 <Database size={16} />
                 Create Vector Store
             </button>
@@ -103,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="mt-auto p-2">
-         <h2 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2 px-2">Tools</h2>
+         <h2 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2 px-2">Prompts Hub</h2>
          <div className="space-y-1">
             <button
                 onClick={onNewPrompt}
