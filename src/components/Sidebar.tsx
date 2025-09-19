@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
             <button
               onClick={onNewKnowledgeBase}
-              className="w-full flex items-center justify-center gap-2 p-2 rounded-lg text-sm bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">
+              className="w-full flex items-center justify-center gap-2 p-2 rounded-lg bg-[--theme-color] text-white hover:opacity-90 transition-colors">
                 <Database size={16} />
                 Create Vector Store
             </button>

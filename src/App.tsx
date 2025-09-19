@@ -292,6 +292,7 @@ const App: React.FC = () => {
         isOpen={isKbModalOpen}
         onClose={() => setIsKbModalOpen(false)}
         onSave={handleSaveKnowledgeBase}
+        themeColor={themeColor}
       />
       <SettingsModal
         isOpen={isSettingsModalOpen}

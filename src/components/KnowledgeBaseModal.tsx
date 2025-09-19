@@ -13,9 +13,10 @@ interface KnowledgeBaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: any) => void;
+  themeColor: string;
 }
 
-export const KnowledgeBaseModal: React.FC<KnowledgeBaseModalProps> = ({ isOpen, onClose, onSave }) => {
+export const KnowledgeBaseModal: React.FC<KnowledgeBaseModalProps> = ({ isOpen, onClose, onSave, themeColor }) => {
   const [kbName, setKbName] = useState('');
   const [vectorStore, setVectorStore] = useState('Chroma');
   const [allowedFileTypes, setAllowedFileTypes] = useState<string[]>([]);
@@ -113,16 +114,17 @@ export const KnowledgeBaseModal: React.FC<KnowledgeBaseModalProps> = ({ isOpen, 
           <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Allowed File Types</label>
               <div className="flex flex-wrap gap-2">
-                  {['PDF', 'DOCX', 'TEXT', 'IMAGE', 'ZIP'].map(fileType => (
+                  {['PDF', 'DOCX', 'TEXT', 'IMAGE', 'ZIP', 'CSV', 'EXCEL'].map(fileType => (
                       <button
                           type="button"
                           key={fileType}
                           onClick={() => handleFileTypeChange(fileType)}
                           className={`px-3 py-1 rounded-full text-sm ${
                               allowedFileTypes.includes(fileType)
-                                  ? 'bg-blue-500 text-white'
+                                  ? 'bg-[--theme-color] text-white'
                                   : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200'
                           }`}
+                          style={allowedFileTypes.includes(fileType) ? { backgroundColor: themeColor } : {}}
                       >
                           {fileType}
                       </button>
@@ -240,7 +242,8 @@ export const KnowledgeBaseModal: React.FC<KnowledgeBaseModalProps> = ({ isOpen, 
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+              className="px-4 py-2 rounded-lg bg-[--theme-color] text-white hover:opacity-90"
+              style={{ backgroundColor: themeColor }}
             >
               Submit
             </button>
