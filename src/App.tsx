@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { ChatView, Message } from './components/ChatView';
 import { PromptModal, PromptTemplate } from './components/PromptModal';
 import { SettingsModal } from './components/SettingsModal';
+import LoginPage from './components/LoginPage';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Type Definitions ---
@@ -33,6 +34,7 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -198,7 +200,15 @@ const App: React.FC = () => {
   };
 
 
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
   // --- Render ---
+
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
