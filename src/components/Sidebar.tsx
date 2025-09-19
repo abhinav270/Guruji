@@ -1,11 +1,7 @@
 import React from 'react';
 import { Plus, MessageSquare, Search, Trash2, Edit, FileText, Database } from 'lucide-react';
-import { ChatSession } from '../App';
-import { PromptTemplate } from './PromptModal';
-
 import { ChatSession, KnowledgeBase } from '../App';
 import { PromptTemplate } from './PromptModal';
-
 interface SidebarProps {
   isOpen: boolean;
   chatSessions: ChatSession[];
