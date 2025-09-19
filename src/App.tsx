@@ -14,6 +14,14 @@ export interface ChatSession {
   messages: Message[];
 }
 
+export interface KnowledgeBase {
+  id: string;
+  name: string;
+  vector_store: string;
+  file_names: string[];
+  created_at: string;
+}
+
 // =================================================================================
 // --- Main App Component ---
 // =================================================================================
@@ -32,6 +40,8 @@ const App: React.FC = () => {
   const [promptToEdit, setPromptToEdit] = useState<PromptTemplate | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isKbModalOpen, setIsKbModalOpen] = useState(false);
+  const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
+  const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [input, setInput] = useState('');
@@ -77,6 +87,23 @@ const App: React.FC = () => {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeChat?.messages, isTyping]);
+
+  // Fetch knowledge bases on mount
+  useEffect(() => {
+    const fetchKnowledgeBases = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/kb/list');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setKnowledgeBases(data.knowledge_bases);
+      } catch (error) {
+        console.error("Failed to fetch knowledge bases:", error);
+      }
+    };
+    fetchKnowledgeBases();
+  }, []);
 
   // Bot reply simulation
   useEffect(() => {
@@ -202,23 +229,20 @@ const App: React.FC = () => {
   };
 
   const handleSaveKnowledgeBase = async (data: any) => {
-    // Note: We are not actually sending the files in this step,
-    // just the metadata. A real implementation would use FormData
-    // and a different content-type.
-    const payload = {
-      kb_name: data.kbName,
-      vector_store: data.vectorStore,
-      allowed_file_types: data.allowedFileTypes,
-      parsing_library: data.parsingLibrary,
-    };
+    const formData = new FormData();
+    formData.append('kb_name', data.kbName);
+    formData.append('vector_store', data.vectorStore);
+    formData.append('parsing_library', data.parsingLibrary);
+    // Note: allowed_file_types is not part of the backend endpoint, so we omit it.
+
+    data.files.forEach((file: File) => {
+      formData.append('files', file);
+    });
 
     try {
       const response = await fetch('http://localhost:8000/kb/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        body: formData, // No 'Content-Type' header needed; browser sets it with boundary
       });
 
       if (!response.ok) {
@@ -227,10 +251,28 @@ const App: React.FC = () => {
 
       const result = await response.json();
       console.log('KB Creation Success:', result);
-      // You could add a success notification here
+      // Add the new KB to the state and refresh the list
+      setKnowledgeBases(prev => [...prev, result.data]);
+      // Optionally, select the new KB
+      setSelectedKnowledgeBaseId(result.data.id);
     } catch (error) {
       console.error("Failed to create Knowledge Base:", error);
       // You could add an error notification here
+    }
+  };
+
+  const handleSelectKnowledgeBase = async (id: string) => {
+    setSelectedKnowledgeBaseId(id);
+    try {
+      const response = await await fetch(`http://localhost:8000/kb/select?kb_id=${id}`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      console.log(`Selected KB: ${id}`);
+    } catch (error) {
+      console.error("Failed to select Knowledge Base:", error);
     }
   };
 
@@ -261,6 +303,9 @@ const App: React.FC = () => {
       onDeletePrompt={handleDeletePrompt}
       onUsePrompt={handleUsePrompt}
       onNewKnowledgeBase={() => setIsKbModalOpen(true)}
+      knowledgeBases={knowledgeBases}
+      selectedKnowledgeBaseId={selectedKnowledgeBaseId}
+      onSelectKnowledgeBase={handleSelectKnowledgeBase}
       />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : ''}`}>
         <ChatView

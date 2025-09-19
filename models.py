@@ -73,9 +73,22 @@ class ToolsListResponse(BaseModel):
 
 # --- Knowledge Base Models ---
 
+class KnowledgeBase(BaseModel):
+    """Model for representing a created Knowledge Base."""
+    id: str
+    name: str
+    vector_store: str
+    file_names: List[str]
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
 class KnowledgeBaseRequest(BaseModel):
     """Request model for creating a new Knowledge Base."""
     kb_name: str
     vector_store: str
     allowed_file_types: List[str]
     parsing_library: str
+    files: List[str] = []
+
+class KnowledgeBaseListResponse(BaseModel):
+    """Response model for listing available Knowledge Bases."""
+    knowledge_bases: List[KnowledgeBase]

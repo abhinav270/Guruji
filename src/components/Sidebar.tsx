@@ -3,6 +3,9 @@ import { Plus, MessageSquare, Search, Trash2, Edit, FileText, Database } from 'l
 import { ChatSession } from '../App';
 import { PromptTemplate } from './PromptModal';
 
+import { ChatSession, KnowledgeBase } from '../App';
+import { PromptTemplate } from './PromptModal';
+
 interface SidebarProps {
   isOpen: boolean;
   chatSessions: ChatSession[];
@@ -18,6 +21,9 @@ interface SidebarProps {
   onDeletePrompt: (id: string) => void;
   onUsePrompt: (text: string) => void;
   onNewKnowledgeBase: () => void;
+  knowledgeBases: KnowledgeBase[];
+  selectedKnowledgeBaseId: string | null;
+  onSelectKnowledgeBase: (id: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -35,6 +41,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDeletePrompt,
   onUsePrompt,
   onNewKnowledgeBase,
+  knowledgeBases,
+  selectedKnowledgeBaseId,
+  onSelectKnowledgeBase,
 }) => {
   return (
     <aside className={`absolute z-20 h-full flex flex-col bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} w-64`}>
@@ -92,11 +101,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="mt-4 p-2">
         <h2 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2 px-2">Knowledge Base</h2>
         <div className="space-y-2">
-            <input
-              type="text"
-              placeholder="Vector store name..."
-              className="w-full p-2 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            />
+            <div className="max-h-32 overflow-y-auto space-y-1">
+                {knowledgeBases.map(kb => (
+                    <label key={kb.id} className="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                        <input
+                            type="radio"
+                            name="knowledgeBase"
+                            value={kb.id}
+                            checked={selectedKnowledgeBaseId === kb.id}
+                            onChange={() => onSelectKnowledgeBase(kb.id)}
+                            className="h-4 w-4 text-blue-600 form-radio"
+                        />
+                        <span className="ml-2 text-sm text-gray-800 dark:text-gray-200 truncate">{kb.name}</span>
+                    </label>
+                ))}
+            </div>
             <button
               onClick={onNewKnowledgeBase}
               className="w-full flex items-center justify-center gap-2 p-2 rounded-lg bg-[--theme-color] text-white hover:opacity-90 transition-colors">

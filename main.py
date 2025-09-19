@@ -11,14 +11,27 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
 
-from fastapi import FastAPI, HTTPException
+import re
+import uuid
+import time
+import logging
+import os
+import shutil
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple, Optional
+
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from mcp.server.fastmcp import FastMCP
+import chromadb
+import faiss
+import docling
+from sentence_transformers import SentenceTransformer
 
 from models import (
     Message, ToolCall, NewSessionResponse, ChatRequest, ChatResponse,
     HistoryResponse, AgentsListResponse, ToolsListResponse, ToolDetail,
-    KnowledgeBaseRequest
+    KnowledgeBase, KnowledgeBaseRequest, KnowledgeBaseListResponse
 )
 from tools import add_tools
 from agents import select_agent, get_agents_list, AgentDetail
@@ -27,6 +40,18 @@ from agents import select_agent, get_agents_list, AgentDetail
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# --- Constants and Global Variables ---
+UPLOAD_DIRECTORY = "./uploaded_files"
+VECTORSTORE_DIRECTORY = "./vector_stores"
+os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
+os.makedirs(VECTORSTORE_DIRECTORY, exist_ok=True)
+
+# In-memory storage for KBs and session
+KNOWLEDGE_BASES: Dict[str, KnowledgeBase] = {}
+SELECTED_KB_ID: Optional[str] = None
+embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
 
 # 1. Create the MCP Server instance and add tools
 mcp_server = FastMCP(
@@ -61,8 +86,6 @@ app.mount("/mcp", mcp_server.streamable_http_app())
 SESSIONS: Dict[str, List[Message]] = {}
 SESSION_METADATA: Dict[str, datetime] = {}
 SESSION_EXPIRATION = timedelta(hours=1)
-
-KNOWLEDGE_BASES: Dict[str, Dict] = {}
 
 def get_session_history(session_id: str) -> List[Message]:
     """Retrieves a session history or raises HTTPException if not found or expired."""
@@ -194,10 +217,99 @@ async def list_tools():
         )
     return ToolsListResponse(tools=tools_list)
 
+# --- Knowledge Base Helper Functions ---
+def process_and_embed_files(file_paths: List[str], vector_store_type: str, kb_id: str):
+    """Processes files and embeds them into the specified vector store."""
+    texts = []
+    for file_path in file_paths:
+        try:
+            if file_path.lower().endswith('.pdf'):
+                # Use docling to convert PDF to markdown
+                markdown_content = docling.word.convert_to_markdown(file_path)
+                texts.append(markdown_content)
+            else:
+                # Handle other files as plain text
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    texts.append(f.read())
+        except Exception as e:
+            logger.error(f"Error processing file {file_path}: {e}")
+            continue
+
+    if not texts:
+        logger.warning("No text could be extracted from the provided files.")
+        return
+
+    logger.info(f"Generating embeddings for {len(texts)} documents.")
+    embeddings = embedding_model.encode(texts, convert_to_tensor=False)
+
+    if vector_store_type == "Chroma":
+        chroma_client = chromadb.PersistentClient(path=os.path.join(VECTORSTORE_DIRECTORY, kb_id))
+        collection = chroma_client.get_or_create_collection(name=f"kb_{kb_id}")
+        doc_ids = [str(uuid.uuid4()) for _ in texts]
+        collection.add(embeddings=embeddings, documents=texts, ids=doc_ids)
+        logger.info(f"Added {len(texts)} documents to Chroma collection for KB {kb_id}.")
+
+    elif vector_store_type == "FAISS":
+        dimension = embeddings.shape[1]
+        index = faiss.IndexFlatL2(dimension)
+        index.add(embeddings)
+        faiss.write_index(index, os.path.join(VECTORSTORE_DIRECTORY, f"{kb_id}.faiss"))
+        # Also save the texts for FAISS, as it only stores vectors
+        with open(os.path.join(VECTORSTORE_DIRECTORY, f"{kb_id}_texts.json"), "w") as f:
+            import json
+            json.dump(texts, f)
+        logger.info(f"Created FAISS index for KB {kb_id} with {len(texts)} documents.")
+
+
+# --- Knowledge Base Endpoints ---
+
 @app.post("/kb/create", tags=["Knowledge Base"])
-async def create_knowledge_base(request: KnowledgeBaseRequest):
-    """Creates a new Knowledge Base configuration."""
+async def create_knowledge_base(
+    kb_name: str = Form(...),
+    vector_store: str = Form(...),
+    parsing_library: str = Form(...),
+    files: List[UploadFile] = File(...)
+):
+    """Creates a new Knowledge Base, processes files, and creates a vector store."""
     kb_id = str(uuid.uuid4())
-    KNOWLEDGE_BASES[kb_id] = request.dict()
-    logger.info(f"New Knowledge Base created: {request.kb_name} (ID: {kb_id})")
-    return {"message": "Knowledge Base created successfully", "kb_id": kb_id, "data": request.dict()}
+    file_paths = []
+    file_names = []
+
+    for file in files:
+        file_location = os.path.join(UPLOAD_DIRECTORY, file.filename)
+        with open(file_location, "wb+") as file_object:
+            shutil.copyfileobj(file.file, file_object)
+        file_paths.append(file_location)
+        file_names.append(file.filename)
+
+    # For now, allowed_file_types and parsing_library are received but not strictly used
+    # The logic can be extended to use them for validation or strategy selection
+
+    process_and_embed_files(file_paths, vector_store, kb_id)
+
+    new_kb = KnowledgeBase(
+        id=kb_id,
+        name=kb_name,
+        vector_store=vector_store,
+        file_names=file_names,
+    )
+    KNOWLEDGE_BASES[kb_id] = new_kb
+
+    logger.info(f"New Knowledge Base created: {kb_name} (ID: {kb_id})")
+    return {"message": "Knowledge Base created successfully", "kb_id": kb_id, "data": new_kb.dict()}
+
+@app.get("/kb/list", response_model=KnowledgeBaseListResponse, tags=["Knowledge Base"])
+async def list_knowledge_bases():
+    """Lists all available Knowledge Bases."""
+    return KnowledgeBaseListResponse(knowledge_bases=list(KNOWLEDGE_BASES.values()))
+
+@app.post("/kb/select", tags=["Knowledge Base"])
+async def select_knowledge_base(kb_id: str):
+    """Selects a Knowledge Base to be used in the RAG model."""
+    global SELECTED_KB_ID
+    if kb_id not in KNOWLEDGE_BASES:
+        raise HTTPException(status_code=404, detail="Knowledge Base not found.")
+
+    SELECTED_KB_ID = kb_id
+    logger.info(f"Knowledge Base selected for RAG: {KNOWLEDGE_BASES[kb_id].name} (ID: {kb_id})")
+    return {"message": f"Knowledge Base '{KNOWLEDGE_BASES[kb_id].name}' selected."}
