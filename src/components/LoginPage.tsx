@@ -18,10 +18,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         </p>
       </div>
       {/* Right Side */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="w-full max-w-sm bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           {/* Tabs */}
-          <div className="flex border-b border-gray-300 dark:border-gray-700 mb-6">
+          <div className="flex border-b border-gray-300 dark:border-gray-700 mb-4">
             <button
               onClick={() => setAuthMode('login')}
               className={`flex-1 py-2 text-center font-semibold transition-colors duration-300 ${
@@ -44,19 +44,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </button>
           </div>
 
-          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
+          <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-white">
             {authMode === 'login' ? 'Login' : 'Create an Account'}
           </h2>
 
           {/* Form */}
           <form onSubmit={(e) => { e.preventDefault(); onLogin(); }}>
             {authMode === 'signup' && (
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="name">
+              <div className="mb-3">
+                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-1" htmlFor="name">
                   Full Name
                 </label>
                 <input
-                  className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   id="name"
                   type="text"
                   placeholder="John Doe"
@@ -64,34 +64,34 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 />
               </div>
             )}
-            <div className="mb-4">
-              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="email">
+            <div className="mb-3">
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-1" htmlFor="email">
                 Email Address
               </label>
               <input
-                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="email"
                 type="email"
                 placeholder="email@example.com"
                 required
               />
             </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
+            <div className="mb-4">
+              <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-1" htmlFor="password">
                 Password
               </label>
               <input
-                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-gray-300 dark:bg-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="password"
                 type="password"
                 placeholder="******************"
                 required
               />
             </div>
-            <div className="mb-6">
+            <div className="mb-4">
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
               >
                 {authMode === 'login' ? 'Sign In' : 'Sign Up'}
               </button>
@@ -99,32 +99,32 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </form>
 
           {/* Separator */}
-          <div className="flex items-center my-6">
+          <div className="flex items-center my-4">
             <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
             <span className="mx-4 text-gray-500 dark:text-gray-400 text-sm">OR</span>
             <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
           </div>
 
           {/* SSO Buttons */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <button
               onClick={onLogin}
               type="button"
-              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
             >
               <span>Sign in with Organization SSO</span>
             </button>
             <button
               onClick={onLogin}
               type="button"
-              className="w-full flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+              className="w-full flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
             >
               <span>Sign in with Google</span>
             </button>
             <button
               onClick={onLogin}
               type="button"
-              className="w-full flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+              className="w-full flex items-center justify-center bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
             >
               <span>Sign in with GitHub</span>
             </button>
