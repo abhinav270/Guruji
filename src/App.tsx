@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { ChatView, Message } from './components/ChatView';
 import { PromptModal, PromptTemplate } from './components/PromptModal';
 import { SettingsModal } from './components/SettingsModal';
+import { KnowledgeBaseModal } from './components/KnowledgeBaseModal';
 import LoginPage from './components/LoginPage';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [promptToEdit, setPromptToEdit] = useState<PromptTemplate | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isKbModalOpen, setIsKbModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [input, setInput] = useState('');
@@ -199,6 +201,38 @@ const App: React.FC = () => {
     setIsPromptModalOpen(true);
   };
 
+  const handleSaveKnowledgeBase = async (data: any) => {
+    // Note: We are not actually sending the files in this step,
+    // just the metadata. A real implementation would use FormData
+    // and a different content-type.
+    const payload = {
+      kb_name: data.kbName,
+      vector_store: data.vectorStore,
+      allowed_file_types: data.allowedFileTypes,
+      parsing_library: data.parsingLibrary,
+    };
+
+    try {
+      const response = await fetch('http://localhost:8000/kb/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('KB Creation Success:', result);
+      // You could add a success notification here
+    } catch (error) {
+      console.error("Failed to create Knowledge Base:", error);
+      // You could add an error notification here
+    }
+  };
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -226,6 +260,7 @@ const App: React.FC = () => {
       onEditPrompt={openEditPromptModal}
       onDeletePrompt={handleDeletePrompt}
       onUsePrompt={handleUsePrompt}
+      onNewKnowledgeBase={() => setIsKbModalOpen(true)}
       />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : ''}`}>
         <ChatView
@@ -252,6 +287,11 @@ const App: React.FC = () => {
         onClose={() => setIsPromptModalOpen(false)}
         onSave={handleSavePrompt}
         promptToEdit={promptToEdit}
+      />
+      <KnowledgeBaseModal
+        isOpen={isKbModalOpen}
+        onClose={() => setIsKbModalOpen(false)}
+        onSave={handleSaveKnowledgeBase}
       />
       <SettingsModal
         isOpen={isSettingsModalOpen}

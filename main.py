@@ -17,7 +17,8 @@ from mcp.server.fastmcp import FastMCP
 
 from models import (
     Message, ToolCall, NewSessionResponse, ChatRequest, ChatResponse,
-    HistoryResponse, AgentsListResponse, ToolsListResponse, ToolDetail
+    HistoryResponse, AgentsListResponse, ToolsListResponse, ToolDetail,
+    KnowledgeBaseRequest
 )
 from tools import add_tools
 from agents import select_agent, get_agents_list, AgentDetail
@@ -60,6 +61,8 @@ app.mount("/mcp", mcp_server.streamable_http_app())
 SESSIONS: Dict[str, List[Message]] = {}
 SESSION_METADATA: Dict[str, datetime] = {}
 SESSION_EXPIRATION = timedelta(hours=1)
+
+KNOWLEDGE_BASES: Dict[str, Dict] = {}
 
 def get_session_history(session_id: str) -> List[Message]:
     """Retrieves a session history or raises HTTPException if not found or expired."""
@@ -190,3 +193,11 @@ async def list_tools():
             )
         )
     return ToolsListResponse(tools=tools_list)
+
+@app.post("/kb/create", tags=["Knowledge Base"])
+async def create_knowledge_base(request: KnowledgeBaseRequest):
+    """Creates a new Knowledge Base configuration."""
+    kb_id = str(uuid.uuid4())
+    KNOWLEDGE_BASES[kb_id] = request.dict()
+    logger.info(f"New Knowledge Base created: {request.kb_name} (ID: {kb_id})")
+    return {"message": "Knowledge Base created successfully", "kb_id": kb_id, "data": request.dict()}
