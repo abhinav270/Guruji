@@ -107,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="mt-auto p-2">
-         <h2 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2 px-2">Tools</h2>
+         <h2 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2 px-2">Prompts Hub</h2>
          <div className="space-y-1">
             <button
                 onClick={onNewPrompt}
