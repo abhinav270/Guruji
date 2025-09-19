@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent } from 're
 import { Sidebar } from './components/Sidebar';
 import { ChatView, Message } from './components/ChatView';
 import { PromptModal, PromptTemplate } from './components/PromptModal';
+import { SettingsModal } from './components/SettingsModal';
+import { KnowledgeBaseModal } from './components/KnowledgeBaseModal';
+import LoginPage from './components/LoginPage';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- Type Definitions ---
@@ -16,6 +19,9 @@ export interface ChatSession {
 // =================================================================================
 const App: React.FC = () => {
   // --- State Management ---
+  const [logo, setLogo] = useState<string | null>(null);
+  const [chatbotTitle, setChatbotTitle] = useState('Chatbot');
+  const [themeColor, setThemeColor] = useState('#007bff');
   const [darkMode, setDarkMode] = useState(false);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -24,10 +30,13 @@ const App: React.FC = () => {
   ]);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [promptToEdit, setPromptToEdit] = useState<PromptTemplate | null>(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isKbModalOpen, setIsKbModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -53,6 +62,11 @@ const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
+
+  // Apply theme color
+  useEffect(() => {
+    document.documentElement.style.setProperty('--theme-color', themeColor);
+  }, [themeColor]);
 
   // Auto-focus input on load
   useEffect(() => {
@@ -187,31 +201,71 @@ const App: React.FC = () => {
     setIsPromptModalOpen(true);
   };
 
+  const handleSaveKnowledgeBase = async (data: any) => {
+    // Note: We are not actually sending the files in this step,
+    // just the metadata. A real implementation would use FormData
+    // and a different content-type.
+    const payload = {
+      kb_name: data.kbName,
+      vector_store: data.vectorStore,
+      allowed_file_types: data.allowedFileTypes,
+      parsing_library: data.parsingLibrary,
+    };
+
+    try {
+      const response = await fetch('http://localhost:8000/kb/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('KB Creation Success:', result);
+      // You could add a success notification here
+    } catch (error) {
+      console.error("Failed to create Knowledge Base:", error);
+      // You could add an error notification here
+    }
+  };
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
 
   // --- Render ---
 
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'} md:w-64`}>
-        <Sidebar
-          isOpen={isSidebarOpen}
-          chatSessions={filteredChatSessions}
-          activeChatId={activeChatId}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onNewChat={handleNewChat}
-        onSelectChat={handleSelectChat}
-        onDeleteChat={handleDeleteChat}
-        promptTemplates={promptTemplates}
-        onNewPrompt={openNewPromptModal}
-        onEditPrompt={openEditPromptModal}
-        onDeletePrompt={handleDeletePrompt}
-        onUsePrompt={handleUsePrompt}
-        />
-      </div>
-      <ChatView
-        messages={activeChat?.messages ?? []}
-        isTyping={isTyping}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        chatSessions={filteredChatSessions}
+        activeChatId={activeChatId}
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      onNewChat={handleNewChat}
+      onSelectChat={handleSelectChat}
+      onDeleteChat={handleDeleteChat}
+      promptTemplates={promptTemplates}
+      onNewPrompt={openNewPromptModal}
+      onEditPrompt={openEditPromptModal}
+      onDeletePrompt={handleDeletePrompt}
+      onUsePrompt={handleUsePrompt}
+      onNewKnowledgeBase={() => setIsKbModalOpen(true)}
+      />
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : ''}`}>
+        <ChatView
+          messages={activeChat?.messages ?? []}
+          isTyping={isTyping}
         input={input}
         setInput={setInput}
         handleSendMessage={handleSendMessage}
@@ -222,12 +276,33 @@ const App: React.FC = () => {
         handleClearChat={handleClearChat}
         handleKeyPress={handleKeyPress}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        openSettingsModal={() => setIsSettingsModalOpen(true)}
+        chatbotTitle={chatbotTitle}
+        logo={logo}
+        isSidebarOpen={isSidebarOpen}
       />
+      </div>
       <PromptModal
         isOpen={isPromptModalOpen}
         onClose={() => setIsPromptModalOpen(false)}
         onSave={handleSavePrompt}
         promptToEdit={promptToEdit}
+      />
+      <KnowledgeBaseModal
+        isOpen={isKbModalOpen}
+        onClose={() => setIsKbModalOpen(false)}
+        onSave={handleSaveKnowledgeBase}
+        themeColor={themeColor}
+      />
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        themeColor={themeColor}
+        setThemeColor={setThemeColor}
+        chatbotTitle={chatbotTitle}
+        setChatbotTitle={setChatbotTitle}
+        logo={logo}
+        setLogo={setLogo}
       />
     </div>
   );
