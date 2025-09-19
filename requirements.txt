@@ -2,3 +2,8 @@ fastapi
 uvicorn[standard]
 pydantic
 mcp[cli]
+python-multipart
+chromadb
+faiss-cpu
+docling
+sentence-transformers
