@@ -19,6 +19,7 @@ import os
 import shutil
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
+from dotenv import load_dotenv
 
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,6 +36,9 @@ from models import (
 )
 from tools import add_tools
 from agents import select_agent, get_agents_list, AgentDetail
+
+# --- Load Environment Variables ---
+load_dotenv()
 
 # --- Application Setup ---
 
