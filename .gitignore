@@ -2,3 +2,4 @@ node_modules
 .venv
 *.pyc
 uvicorn.log
+__pycache__
